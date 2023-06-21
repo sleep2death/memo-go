@@ -1,0 +1,79 @@
+basePath: /api/v1
+definitions:
+  memo.HTTPError:
+    properties:
+      code:
+        example: 400
+        type: integer
+      message:
+        example: status bad request
+        type: string
+    type: object
+  memo.Session:
+    properties:
+      _id:
+        type: string
+      created_at:
+        type: integer
+      name:
+        type: string
+    type: object
+externalDocs:
+  description: OpenAPI
+  url: https://swagger.io/resources/open-api/
+host: localhost:8080
+info:
+  contact:
+    email: aspirin2d@outlook.com
+    name: API Support
+    url: http://github.com/sleep2death/memo-go/issues
+  description: This is a server for memo-services.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Swagger Memo API
+  version: 0.0.1
+paths:
+  /s:
+    get:
+      consumes:
+      - application/json
+      description: list all sessions
+      parameters:
+      - description: pagination offset
+        in: path
+        name: offset
+        type: string
+      - description: pagination limit
+        in: path
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/memo.Session'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/memo.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/memo.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/memo.HTTPError'
+      summary: get all sessions
+      tags:
+      - sessions
+securityDefinitions:
+  BasicAuth:
+    type: basic
+swagger: "2.0"
