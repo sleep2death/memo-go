@@ -198,6 +198,7 @@ const docTemplate = `{
                         "description": "the session to be created",
                         "name": "session",
                         "in": "body",
+                        "required": true,
                         "schema": {
                             "$ref": "#/definitions/memo.Session"
                         }

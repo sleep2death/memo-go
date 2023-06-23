@@ -14,7 +14,7 @@ type Handlers struct {
 	SearchLimit int64
 }
 
-func New() (*Handlers, error) {
+func Default() (*Handlers, error) {
 	mongo, err := SetupMongo()
 	if err != nil {
 		return nil, err

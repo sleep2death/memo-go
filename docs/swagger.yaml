@@ -163,6 +163,7 @@ paths:
       - description: the session to be created
         in: body
         name: session
+        required: true
         schema:
           $ref: '#/definitions/memo.Session'
       produces:

@@ -43,7 +43,7 @@ func main() {
 	r := gin.Default()
 	v1 := r.Group("/api/v1")
 
-	handlers, err := memo.New()
+	handlers, err := memo.Default()
 	if err != nil {
 		log.Fatal(err)
 	}
