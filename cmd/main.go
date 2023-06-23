@@ -32,8 +32,8 @@ import (
 
 //	@securityDefinitions.basic	BasicAuth
 
-//	@externalDocs.description	OpenAPI
-//	@externalDocs.url			https://swagger.io/resources/open-api/
+// @externalDocs.description	OpenAPI
+// @externalDocs.url			https://swagger.io/resources/open-api/
 func main() {
 	err := godotenv.Load()
 	if err != nil {
