@@ -5,7 +5,7 @@ tmp_dir = "tmp"
 [build]
   args_bin = []
   bin = "./tmp/main"
-  cmd = "swag init --parseDependency --parseInternal --parseDepth 1 -g cmd/main.go && go build -o ./tmp/main ./cmd/main.go"
+  cmd = "go build -o ./tmp/main ./cmd/main.go"
   delay = 0
   exclude_dir = ["assets", "tmp", "vendor", "testdata"]
   exclude_file = []

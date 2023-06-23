@@ -1,15 +1,11 @@
 package memo
 
 import (
-	"log"
-
 	"github.com/gin-gonic/gin"
 )
 
 // NewError example
 func NewError(ctx *gin.Context, status int, err error) {
-  log.Println(err)
-
 	er := HTTPError{
 		Code:    status,
 		Message: err.Error(),

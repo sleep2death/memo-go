@@ -10,7 +10,6 @@ import (
 
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
-
 )
 
 // gin-swagger middleware
@@ -33,8 +32,8 @@ import (
 
 //	@securityDefinitions.basic	BasicAuth
 
-// @externalDocs.description	OpenAPI
-// @externalDocs.url			https://swagger.io/resources/open-api/
+//	@externalDocs.description	OpenAPI
+//	@externalDocs.url			https://swagger.io/resources/open-api/
 func main() {
 	err := godotenv.Load()
 	if err != nil {
@@ -49,8 +48,10 @@ func main() {
 		log.Fatal(err)
 	}
 
-	sg := v1.Group("/s")
-	sg.GET("", handlers.GetSessions)
+	v1.GET("/s", handlers.GetSessions)
+	v1.POST("/s/add", handlers.AddSession)
+	v1.DELETE("/s/:id/del", handlers.DeleteSession)
+	v1.GET("/s/:id", handlers.GetSession)
 
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
