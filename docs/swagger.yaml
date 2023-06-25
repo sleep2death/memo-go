@@ -40,6 +40,21 @@ definitions:
       content:
         type: string
     type: object
+  memo.OK:
+    properties:
+      ok:
+        type: boolean
+    type: object
+  memo.RetrieveMemoriesResponse:
+    properties:
+      memories:
+        description: inserted memory id in qdrant
+        items:
+          $ref: '#/definitions/memo.Memory'
+        type: array
+      next_offset:
+        type: string
+    type: object
   memo.SearchMemoryRequest:
     properties:
       limit:
@@ -61,12 +76,6 @@ definitions:
         items:
           type: string
         type: array
-    type: object
-  mongo.DeleteResult:
-    properties:
-      deletedCount:
-        description: The number of documents deleted.
-        type: integer
     type: object
   mongo.InsertOneResult:
     properties:
@@ -117,7 +126,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/memo.Memory'
+            $ref: '#/definitions/memo.RetrieveMemoriesResponse'
         default:
           description: ""
           schema:
@@ -179,7 +188,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/memo.Memory'
+            $ref: '#/definitions/memo.RetrieveMemoriesResponse'
         default:
           description: ""
           schema:
@@ -257,7 +266,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/mongo.DeleteResult'
+            $ref: '#/definitions/memo.OK'
         default:
           description: ""
           schema:

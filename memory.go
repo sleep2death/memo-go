@@ -54,6 +54,7 @@ type SearchMemoryRequest struct {
 
 type RetrieveMemoriesResponse struct {
 	Memories []Memory `bson:"memories" json:"memories"` // inserted memory id in qdrant
+	Offset   string   `bson:"next_offset" json:"next_offset"`
 }
 
 // @Summary		add memories
@@ -164,7 +165,7 @@ func (hs *Handlers) SearchMemories(c *gin.Context) {
 		memories = append(memories, m)
 	}
 
-	c.JSON(http.StatusOK, RetrieveMemoriesResponse{memories})
+	c.JSON(http.StatusOK, RetrieveMemoriesResponse{Memories: memories})
 }
 
 // @Summary		get all memories
@@ -224,7 +225,7 @@ func (hs *Handlers) GetAllMemories(c *gin.Context) {
 		memories = append(memories, m)
 	}
 
-	c.JSON(http.StatusOK, RetrieveMemoriesResponse{memories})
+	c.JSON(http.StatusOK, RetrieveMemoriesResponse{Memories: memories, Offset: resp.GetNextPageOffset().GetUuid()})
 }
 
 // ensure qdrant collection MUST exist, if not create one

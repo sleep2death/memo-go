@@ -116,14 +116,14 @@ func (s *MemoryTestSuite) TestAddMemoriesAndSearch() {
   assert.Contains(t, result.Memories[0].Metadata.Content, "hello")
 
 	w = httptest.NewRecorder()
-	req, _ = http.NewRequest("GET", "/m/"+s.sess+"?offset="+result.Memories[len(result.Memories)-1].ID, nil)
+	req, _ = http.NewRequest("GET", "/m/"+s.sess+"?offset="+result.Offset, nil)
 	s.router.ServeHTTP(w, req)
 	assert.Equal(t, 200, w.Code)
 	//
-	// err = json.NewDecoder(w.Body).Decode(&result)
-	// assert.NoError(t, err)
-	// assert.Equal(t, int64(len(result.Memories)), 1)
- //  assert.Contains(t, result.Memories[0].Metadata.Content, "i like")
+	err = json.NewDecoder(w.Body).Decode(&result)
+	assert.NoError(t, err)
+	assert.Equal(t, len(result.Memories), 1)
+  assert.Contains(t, result.Memories[0].Metadata.Content, "i like")
 }
 
 func TestMemory(t *testing.T) {

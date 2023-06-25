@@ -64,7 +64,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/memo.Memory"
+                            "$ref": "#/definitions/memo.RetrieveMemoriesResponse"
                         }
                     },
                     "default": {
@@ -158,7 +158,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/memo.Memory"
+                            "$ref": "#/definitions/memo.RetrieveMemoriesResponse"
                         }
                     },
                     "default": {
@@ -277,7 +277,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/mongo.DeleteResult"
+                            "$ref": "#/definitions/memo.OK"
                         }
                     },
                     "default": {
@@ -392,6 +392,29 @@ const docTemplate = `{
                 }
             }
         },
+        "memo.OK": {
+            "type": "object",
+            "properties": {
+                "ok": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "memo.RetrieveMemoriesResponse": {
+            "type": "object",
+            "properties": {
+                "memories": {
+                    "description": "inserted memory id in qdrant",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/memo.Memory"
+                    }
+                },
+                "next_offset": {
+                    "type": "string"
+                }
+            }
+        },
         "memo.SearchMemoryRequest": {
             "type": "object",
             "properties": {
@@ -422,15 +445,6 @@ const docTemplate = `{
                     "items": {
                         "type": "string"
                     }
-                }
-            }
-        },
-        "mongo.DeleteResult": {
-            "type": "object",
-            "properties": {
-                "deletedCount": {
-                    "description": "The number of documents deleted.",
-                    "type": "integer"
                 }
             }
         },

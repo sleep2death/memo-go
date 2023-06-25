@@ -57,7 +57,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/memo.Memory"
+                            "$ref": "#/definitions/memo.RetrieveMemoriesResponse"
                         }
                     },
                     "default": {
@@ -151,7 +151,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/memo.Memory"
+                            "$ref": "#/definitions/memo.RetrieveMemoriesResponse"
                         }
                     },
                     "default": {
@@ -270,7 +270,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/mongo.DeleteResult"
+                            "$ref": "#/definitions/memo.OK"
                         }
                     },
                     "default": {
@@ -385,6 +385,29 @@
                 }
             }
         },
+        "memo.OK": {
+            "type": "object",
+            "properties": {
+                "ok": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "memo.RetrieveMemoriesResponse": {
+            "type": "object",
+            "properties": {
+                "memories": {
+                    "description": "inserted memory id in qdrant",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/memo.Memory"
+                    }
+                },
+                "next_offset": {
+                    "type": "string"
+                }
+            }
+        },
         "memo.SearchMemoryRequest": {
             "type": "object",
             "properties": {
@@ -415,15 +438,6 @@
                     "items": {
                         "type": "string"
                     }
-                }
-            }
-        },
-        "mongo.DeleteResult": {
-            "type": "object",
-            "properties": {
-                "deletedCount": {
-                    "description": "The number of documents deleted.",
-                    "type": "integer"
                 }
             }
         },
