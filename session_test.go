@@ -22,10 +22,9 @@ type SessionTestSuite struct {
 }
 
 func (s *SessionTestSuite) SetupSuite() {
-	gin.SetMode(gin.ReleaseMode)
 	os.Setenv("MONGO_SESSIONS", "test_sessions")
 
-	s.router = gin.Default()
+	s.router = gin.New()
 	hs, err := Default()
 	assert.NoError(s.T(), err)
 	s.hs = hs

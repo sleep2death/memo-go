@@ -15,7 +15,7 @@ import (
 func SetupMongo() (*mongo.Collection, error) {
 	dbUri := os.Getenv("MONGO_URI")
 	if dbUri == "" {
-		dbUri = "memo_db"
+    dbUri = "mongodb://localhost:27017"
 	}
 
 	dbName := os.Getenv("MONGO_DB")
