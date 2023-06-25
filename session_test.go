@@ -13,7 +13,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type SessionTestSuite struct {
@@ -39,7 +38,7 @@ func (s *SessionTestSuite) SetupSuite() {
 
 func (s *SessionTestSuite) TearDownTest() {
 	// clear testing data here
-	err := s.hs.mongo.Collection("test_sessions").Drop(context.TODO())
+	err := s.hs.sessions.Drop(context.TODO())
 	assert.NoError(s.T(), err)
 }
 
@@ -56,13 +55,21 @@ func (s *SessionTestSuite) TestSession() {
 	assert.Zero(t, len(p))
 
 	// add 15 sessions
+	var ids []SessionAddResponse
 	for i := 0; i < 15; i++ {
 		w := httptest.NewRecorder()
 		jsonStr := []byte(`{"name":"aspirin2d", "tags":["hello", "world"]}`)
 		req, _ = http.NewRequest("PUT", "/s/add", bytes.NewBuffer(jsonStr))
 		s.router.ServeHTTP(w, req)
 		assert.Equal(t, 200, w.Code)
+
+		var res SessionAddResponse
+		err := json.NewDecoder(w.Body).Decode(&res)
+		assert.NoError(t, err)
+		ids = append(ids, res)
 	}
+
+	assert.Equal(t, 15, len(ids))
 
 	// first page
 	w = httptest.NewRecorder()
@@ -102,11 +109,6 @@ func (s *SessionTestSuite) TestSession() {
 	assert.Equal(t, 400, w.Code)
 
 	w = httptest.NewRecorder()
-	req, _ = http.NewRequest("DELETE", "/s/"+p[len(p)-1].ID.Hex()+"/del", nil)
-	s.router.ServeHTTP(w, req)
-	assert.Equal(t, 200, w.Code)
-
-	w = httptest.NewRecorder()
 	req, _ = http.NewRequest("DELETE", "/s/123/del", nil)
 	s.router.ServeHTTP(w, req)
 	assert.Equal(t, 400, w.Code)
@@ -114,14 +116,21 @@ func (s *SessionTestSuite) TestSession() {
 	w = httptest.NewRecorder()
 	req, _ = http.NewRequest("DELETE", "/s/"+primitive.NewObjectID().Hex()+"/del", nil)
 	s.router.ServeHTTP(w, req)
-	assert.Equal(t, 400, w.Code)
+	assert.Equal(t, 404, w.Code)
 
 	w = httptest.NewRecorder()
 	req, _ = http.NewRequest("GET", "/s?limit=20", nil)
 	s.router.ServeHTTP(w, req)
 	assert.Equal(t, 200, w.Code)
 	json.NewDecoder(w.Body).Decode(&p)
-	assert.Equal(t, 14, len(p))
+	assert.Equal(t, 15, len(p))
+
+	for i := 0; i < len(ids); i++ {
+		w := httptest.NewRecorder()
+		req, _ = http.NewRequest("DELETE", "/s/"+ids[i].ID.Hex()+"/del", nil)
+		s.router.ServeHTTP(w, req)
+		assert.Equal(t, 200, w.Code)
+	}
 
 	w = httptest.NewRecorder()
 	jsonStr := []byte(`{"name":"aspirin2ds", "tags":["hello", "world!"]}`)
@@ -129,15 +138,12 @@ func (s *SessionTestSuite) TestSession() {
 	s.router.ServeHTTP(w, req)
 	assert.Equal(t, 200, w.Code)
 
-	var ir mongo.InsertOneResult
+	var ir SessionAddResponse
 	err := json.NewDecoder(w.Body).Decode(&ir)
 	assert.NoError(t, err)
 
-	objID, ok := ir.InsertedID.(string)
-	assert.True(t, ok)
-
 	w = httptest.NewRecorder()
-	req, _ = http.NewRequest("GET", "/s/"+objID, nil)
+	req, _ = http.NewRequest("GET", "/s/"+ir.ID.Hex(), nil)
 	s.router.ServeHTTP(w, req)
 	assert.Equal(t, 200, w.Code)
 
@@ -154,6 +160,11 @@ func (s *SessionTestSuite) TestSession() {
 	req, _ = http.NewRequest("GET", "/s/"+primitive.NewObjectID().Hex(), nil)
 	s.router.ServeHTTP(w, req)
 	assert.Equal(t, 404, w.Code)
+
+		w = httptest.NewRecorder()
+		req, _ = http.NewRequest("DELETE", "/s/"+ir.ID.Hex()+"/del", nil)
+		s.router.ServeHTTP(w, req)
+		assert.Equal(t, 200, w.Code)
 }
 
 func TestSessionTestSuite(t *testing.T) {

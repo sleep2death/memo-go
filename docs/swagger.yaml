@@ -1,12 +1,51 @@
 basePath: /api/v1
 definitions:
-  memo.HTTPError:
+  memo.APIError:
     properties:
       code:
         example: 400
         type: integer
       message:
         example: status bad request
+        type: string
+    type: object
+  memo.AddMemoryRequest:
+    properties:
+      memories:
+        items:
+          $ref: '#/definitions/memo.Memory'
+        type: array
+    type: object
+  memo.AddMemoryResponse:
+    properties:
+      ids:
+        description: inserted memory id in qdrant
+        items:
+          type: string
+        type: array
+    type: object
+  memo.Memory:
+    properties:
+      embedding:
+        items:
+          type: number
+        type: array
+      id:
+        type: string
+      metadata:
+        $ref: '#/definitions/memo.MemoryMetadata'
+    type: object
+  memo.MemoryMetadata:
+    properties:
+      content:
+        type: string
+    type: object
+  memo.SearchMemoryRequest:
+    properties:
+      limit:
+        default: 5
+        type: integer
+      query:
         type: string
     type: object
   memo.Session:
@@ -52,11 +91,107 @@ info:
   title: Swagger Memo API
   version: 0.0.1
 paths:
+  /m/:session:
+    get:
+      consumes:
+      - application/json
+      description: get all memories in this session
+      parameters:
+      - description: memory belonging to which session
+        in: path
+        name: session
+        required: true
+        type: string
+      - description: pagination offset id
+        in: query
+        name: offset
+        type: string
+      - default: 5
+        description: pagination limit
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/memo.Memory'
+        default:
+          description: ""
+          schema:
+            $ref: '#/definitions/memo.APIError'
+      summary: get all memories
+      tags:
+      - memories
+  /m/:session/add:
+    put:
+      consumes:
+      - application/json
+      description: add one or more memories to the session
+      parameters:
+      - description: memory belonging to which session
+        in: path
+        name: session
+        required: true
+        type: string
+      - description: the memory info
+        in: body
+        name: memory
+        required: true
+        schema:
+          $ref: '#/definitions/memo.AddMemoryRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/memo.AddMemoryResponse'
+        default:
+          description: ""
+          schema:
+            $ref: '#/definitions/memo.APIError'
+      summary: add memories
+      tags:
+      - memories
+  /m/:session/search:
+    get:
+      consumes:
+      - application/json
+      description: search memory by similarity
+      parameters:
+      - description: memory belonging to which session
+        in: path
+        name: session
+        required: true
+        type: string
+      - description: query object
+        in: body
+        name: query
+        required: true
+        schema:
+          $ref: '#/definitions/memo.SearchMemoryRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/memo.Memory'
+        default:
+          description: ""
+          schema:
+            $ref: '#/definitions/memo.APIError'
+      summary: search memory by similarity
+      tags:
+      - memories
   /s:
     get:
       description: list all sessions
       parameters:
-      - description: pagination offset
+      - description: pagination offset id
         in: query
         name: offset
         type: string
@@ -73,18 +208,10 @@ paths:
             items:
               $ref: '#/definitions/memo.Session'
             type: array
-        "400":
-          description: Bad Request
+        default:
+          description: ""
           schema:
-            $ref: '#/definitions/memo.HTTPError'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/memo.HTTPError'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/memo.HTTPError'
+            $ref: '#/definitions/memo.APIError'
       summary: get all sessions
       tags:
       - sessions
@@ -106,18 +233,10 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/memo.Session'
-        "400":
-          description: Bad Request
+        default:
+          description: ""
           schema:
-            $ref: '#/definitions/memo.HTTPError'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/memo.HTTPError'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/memo.HTTPError'
+            $ref: '#/definitions/memo.APIError'
       summary: get one session by id
       tags:
       - sessions
@@ -139,18 +258,10 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/mongo.DeleteResult'
-        "400":
-          description: Bad Request
+        default:
+          description: ""
           schema:
-            $ref: '#/definitions/memo.HTTPError'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/memo.HTTPError'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/memo.HTTPError'
+            $ref: '#/definitions/memo.APIError'
       summary: remove one session
       tags:
       - sessions
@@ -173,18 +284,10 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/mongo.InsertOneResult'
-        "400":
-          description: Bad Request
+        default:
+          description: ""
           schema:
-            $ref: '#/definitions/memo.HTTPError'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/memo.HTTPError'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/memo.HTTPError'
+            $ref: '#/definitions/memo.APIError'
       summary: create a session
       tags:
       - sessions

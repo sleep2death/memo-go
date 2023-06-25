@@ -19,7 +19,7 @@ func TestSetupMongo(t *testing.T) {
 	m, err := SetupMongo()
 	assert.NoError(t, err)
 
-	err = m.Client().Ping(context.TODO(), nil)
+	err = m.Database().Client().Ping(context.TODO(), nil)
 	assert.NoError(t, err)
 }
 

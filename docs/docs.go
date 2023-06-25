@@ -25,6 +25,151 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/m/:session": {
+            "get": {
+                "description": "get all memories in this session",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "memories"
+                ],
+                "summary": "get all memories",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "memory belonging to which session",
+                        "name": "session",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "pagination offset id",
+                        "name": "offset",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 5,
+                        "description": "pagination limit",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/memo.Memory"
+                        }
+                    },
+                    "default": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/memo.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/m/:session/add": {
+            "put": {
+                "description": "add one or more memories to the session",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "memories"
+                ],
+                "summary": "add memories",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "memory belonging to which session",
+                        "name": "session",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "the memory info",
+                        "name": "memory",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/memo.AddMemoryRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/memo.AddMemoryResponse"
+                        }
+                    },
+                    "default": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/memo.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/m/:session/search": {
+            "get": {
+                "description": "search memory by similarity",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "memories"
+                ],
+                "summary": "search memory by similarity",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "memory belonging to which session",
+                        "name": "session",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "query object",
+                        "name": "query",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/memo.SearchMemoryRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/memo.Memory"
+                        }
+                    },
+                    "default": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/memo.APIError"
+                        }
+                    }
+                }
+            }
+        },
         "/s": {
             "get": {
                 "description": "list all sessions",
@@ -38,7 +183,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "pagination offset",
+                        "description": "pagination offset id",
                         "name": "offset",
                         "in": "query"
                     },
@@ -59,22 +204,10 @@ const docTemplate = `{
                             }
                         }
                     },
-                    "400": {
-                        "description": "Bad Request",
+                    "default": {
+                        "description": "",
                         "schema": {
-                            "$ref": "#/definitions/memo.HTTPError"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/memo.HTTPError"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/memo.HTTPError"
+                            "$ref": "#/definitions/memo.APIError"
                         }
                     }
                 }
@@ -109,22 +242,10 @@ const docTemplate = `{
                             "$ref": "#/definitions/memo.Session"
                         }
                     },
-                    "400": {
-                        "description": "Bad Request",
+                    "default": {
+                        "description": "",
                         "schema": {
-                            "$ref": "#/definitions/memo.HTTPError"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/memo.HTTPError"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/memo.HTTPError"
+                            "$ref": "#/definitions/memo.APIError"
                         }
                     }
                 }
@@ -159,22 +280,10 @@ const docTemplate = `{
                             "$ref": "#/definitions/mongo.DeleteResult"
                         }
                     },
-                    "400": {
-                        "description": "Bad Request",
+                    "default": {
+                        "description": "",
                         "schema": {
-                            "$ref": "#/definitions/memo.HTTPError"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/memo.HTTPError"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/memo.HTTPError"
+                            "$ref": "#/definitions/memo.APIError"
                         }
                     }
                 }
@@ -211,22 +320,10 @@ const docTemplate = `{
                             "$ref": "#/definitions/mongo.InsertOneResult"
                         }
                     },
-                    "400": {
-                        "description": "Bad Request",
+                    "default": {
+                        "description": "",
                         "schema": {
-                            "$ref": "#/definitions/memo.HTTPError"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/memo.HTTPError"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/memo.HTTPError"
+                            "$ref": "#/definitions/memo.APIError"
                         }
                     }
                 }
@@ -234,7 +331,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "memo.HTTPError": {
+        "memo.APIError": {
             "type": "object",
             "properties": {
                 "code": {
@@ -244,6 +341,66 @@ const docTemplate = `{
                 "message": {
                     "type": "string",
                     "example": "status bad request"
+                }
+            }
+        },
+        "memo.AddMemoryRequest": {
+            "type": "object",
+            "properties": {
+                "memories": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/memo.Memory"
+                    }
+                }
+            }
+        },
+        "memo.AddMemoryResponse": {
+            "type": "object",
+            "properties": {
+                "ids": {
+                    "description": "inserted memory id in qdrant",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "memo.Memory": {
+            "type": "object",
+            "properties": {
+                "embedding": {
+                    "type": "array",
+                    "items": {
+                        "type": "number"
+                    }
+                },
+                "id": {
+                    "type": "string"
+                },
+                "metadata": {
+                    "$ref": "#/definitions/memo.MemoryMetadata"
+                }
+            }
+        },
+        "memo.MemoryMetadata": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "string"
+                }
+            }
+        },
+        "memo.SearchMemoryRequest": {
+            "type": "object",
+            "properties": {
+                "limit": {
+                    "type": "integer",
+                    "default": 5
+                },
+                "query": {
+                    "type": "string"
                 }
             }
         },
