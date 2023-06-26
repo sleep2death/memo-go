@@ -51,11 +51,11 @@ func (m MemoryType) MarshalJSON() ([]byte, error) {
 }
 
 func (m *MemoryType) UnmarshalJSON(data []byte) (err error) {
-	var suits string
-	if err := json.Unmarshal(data, &suits); err != nil {
+	var str string
+	if err := json.Unmarshal(data, &str); err != nil {
 		return err
 	}
-	if *m, err = ParseMemoryType(suits); err != nil {
+	if *m, err = ParseMemoryType(str); err != nil {
 		return err
 	}
 	return nil

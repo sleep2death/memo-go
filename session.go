@@ -20,11 +20,10 @@ var (
 
 // the agent session
 type Session struct {
-	ID        primitive.ObjectID `bson:"_id,omitempty" json:"_id,omitempty"`
-	Name      string             `bson:"name" json:"name"`
-	Tags      []string           `bson:"tags,omitempty" json:"tags,omitempty"`
+	ID        primitive.ObjectID `bson:"_id,omitempty" json:"_id,omitempty"`               // auto-generated id
+	Name      string             `bson:"name" json:"name"`                                 // agent's name
+	Desc      string             `bson:"desc,omitempty" json:"desc,omitempty"`             // agent's description
 	CreatedAt primitive.DateTime `bson:"created_at,omitempty" json:"created_at,omitempty"` // auto-generated created time
-	Memories  []Memory           `bson:"memories,omitempty" json:"memories,omitempty"`
 }
 
 type OK struct {
@@ -47,13 +46,13 @@ type SessionAddResponse struct {
 func (h *Handlers) GetSessions(c *gin.Context) {
 	ctx := c.Request.Context()
 
-	offset := c.DefaultQuery("offset", "none")
-	limit := c.DefaultQuery("limit", "none")
+	offset := c.Query("offset")
+	limit := c.Query("limit")
 
 	filter := bson.M{}
 
 	// set search offset id
-	if offset != "none" {
+	if offset != "" {
 		o, err := primitive.ObjectIDFromHex(offset)
 		if err != nil {
 			NewError(c, http.StatusBadRequest, err)
@@ -64,7 +63,7 @@ func (h *Handlers) GetSessions(c *gin.Context) {
 
 	// set search limit
 	l := h.SearchLimit
-	if limit != "none" {
+	if limit != "" {
 		li, err := strconv.Atoi(limit)
 		if err != nil {
 			NewError(c, http.StatusBadRequest, err)

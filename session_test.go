@@ -131,7 +131,7 @@ func (s *SessionTestSuite) TestSession() {
 	}
 
 	w = httptest.NewRecorder()
-	jsonStr := []byte(`{"name":"aspirin2ds", "tags":["hello", "world!"]}`)
+	jsonStr := []byte(`{"name":"aspirin2ds", "desc":"Aspirin2ds is a girl."}`)
 	req, _ = http.NewRequest("PUT", "/s/add", bytes.NewBuffer(jsonStr))
 	s.router.ServeHTTP(w, req)
 	assert.Equal(t, 200, w.Code)
@@ -147,7 +147,7 @@ func (s *SessionTestSuite) TestSession() {
 
 	var sess Session
 	json.NewDecoder(w.Body).Decode(&sess)
-	assert.Equal(t, "world!", sess.Tags[1])
+	assert.Contains(t, sess.Desc, "girl")
 
 	w = httptest.NewRecorder()
 	req, _ = http.NewRequest("GET", "/s/123", nil)

@@ -21,6 +21,8 @@ type MemoryTestSuite struct {
 }
 
 func (s *MemoryTestSuite) SetupSuite() {
+	loadEnv(s.T())
+
 	gin.SetMode(gin.TestMode)
 	os.Setenv("MONGO_SESSIONS", "test_sessions")
 
@@ -64,7 +66,7 @@ func (s *MemoryTestSuite) TestAddMemoriesAndSearch() {
     {"metadata":{"content":"i'm from shanghai.", "type":"basic"}},
     {"metadata":{"content":"i'm 10 years old.", "type":"basic"}},
     {"metadata":{"content":"i'm a boy."}},
-    {"metadata":{"content":"i'm a little shy"}},
+  {"metadata":{"content":"i'm a little shy", "type":"plan"}},
   {"metadata":{"content":"i like playing basketball.", "type":"interact"}}
   ]}`)
 	req, _ := http.NewRequest("PUT", "/m/"+s.sess+"/add", bytes.NewBuffer(jsonStr))
