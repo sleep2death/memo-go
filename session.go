@@ -24,6 +24,7 @@ type Session struct {
 	Name      string             `bson:"name" json:"name"`
 	Tags      []string           `bson:"tags,omitempty" json:"tags,omitempty"`
 	CreatedAt primitive.DateTime `bson:"created_at,omitempty" json:"created_at,omitempty"` // auto-generated created time
+	Memories  []Memory           `bson:"memories,omitempty" json:"memories,omitempty"`
 }
 
 type OK struct {

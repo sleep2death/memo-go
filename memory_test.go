@@ -25,14 +25,13 @@ func (s *MemoryTestSuite) SetupSuite() {
 	os.Setenv("MONGO_SESSIONS", "test_sessions")
 
 	s.router = gin.New()
-	hs, err := Default()
-	assert.NoError(s.T(), err)
+	hs := Default()
 	s.hs = hs
 
 	s.router.PUT("/s/add", s.hs.AddSession)
 	s.router.DELETE("/s/:id/del", s.hs.DeleteSession)
 
-	s.router.PUT("/m/:session/add", s.hs.AddMemory)
+	s.router.PUT("/m/:session/add", s.hs.AddMemories)
 	s.router.GET("/m/:session/search", s.hs.SearchMemories)
 	s.router.GET("/m/:session", s.hs.GetAllMemories)
 
@@ -44,7 +43,7 @@ func (s *MemoryTestSuite) SetupSuite() {
 	assert.Equal(s.T(), 200, w.Code)
 
 	var res SessionAddResponse
-	err = json.NewDecoder(w.Body).Decode(&res)
+	err := json.NewDecoder(w.Body).Decode(&res)
 	assert.NoError(s.T(), err)
 	s.sess = res.ID.Hex()
 }
@@ -61,18 +60,18 @@ func (s *MemoryTestSuite) TestAddMemoriesAndSearch() {
 	t := s.T()
 	w := httptest.NewRecorder()
 	jsonStr := []byte(`{"memories":[
-    {"metadata":{"content":"hello, my name is aspirin."}}, 
-    {"metadata":{"content":"i'm from shanghai."}},
-    {"metadata":{"content":"i'm 10 years old."}},
+    {"metadata":{"content":"hello, my name is aspirin.", "type":"basic"}}, 
+    {"metadata":{"content":"i'm from shanghai.", "type":"basic"}},
+    {"metadata":{"content":"i'm 10 years old.", "type":"basic"}},
     {"metadata":{"content":"i'm a boy."}},
     {"metadata":{"content":"i'm a little shy"}},
-    {"metadata":{"content":"i like playing basketball."}}
+  {"metadata":{"content":"i like playing basketball.", "type":"interact"}}
   ]}`)
 	req, _ := http.NewRequest("PUT", "/m/"+s.sess+"/add", bytes.NewBuffer(jsonStr))
 	s.router.ServeHTTP(w, req)
 	assert.Equal(t, 200, w.Code)
 
-	var resp AddMemoryResponse
+	var resp AddMemoriesResponse
 	json.NewDecoder(w.Body).Decode(&resp)
 	assert.Equal(t, 6, len(resp.IDs))
 
@@ -113,7 +112,7 @@ func (s *MemoryTestSuite) TestAddMemoriesAndSearch() {
 	err = json.NewDecoder(w.Body).Decode(&result)
 	assert.NoError(t, err)
 	assert.Equal(t, len(result.Memories), 5)
-  assert.Contains(t, result.Memories[0].Metadata.Content, "hello")
+	assert.Contains(t, result.Memories[0].Metadata.Content, "hello")
 
 	w = httptest.NewRecorder()
 	req, _ = http.NewRequest("GET", "/m/"+s.sess+"?offset="+result.Offset, nil)
@@ -123,7 +122,7 @@ func (s *MemoryTestSuite) TestAddMemoriesAndSearch() {
 	err = json.NewDecoder(w.Body).Decode(&result)
 	assert.NoError(t, err)
 	assert.Equal(t, len(result.Memories), 1)
-  assert.Contains(t, result.Memories[0].Metadata.Content, "i like")
+	assert.Contains(t, result.Memories[0].Metadata.Content, "i like")
 }
 
 func TestMemory(t *testing.T) {

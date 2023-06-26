@@ -2,20 +2,79 @@ package memo
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	pb "github.com/qdrant/go-client/qdrant"
-	"github.com/sashabaranov/go-openai"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
+type MemoryType int8
+
+const (
+	UndefinedMemory MemoryType = iota
+	BasicMemory                // default type of memory
+	InteractMemory             // agent interacted with someone or something
+	PlanMemory                 // the plan which agent is going to follow
+)
+
+var (
+	MemoryTypeStr = map[uint8]string{
+		0: "undefined",
+		1: "basic",
+		2: "interact",
+		3: "plan",
+	}
+	MemoryTypeInt = map[string]int8{
+		"undefined": 0,
+		"basic":     1,
+		"interact":  2,
+		"plan":      3,
+	}
+)
+
+// String allows MemoryType to implement fmt.Stringer
+func (m MemoryType) String() string {
+	return MemoryTypeStr[uint8(m)]
+}
+
+func (m MemoryType) MarshalJSON() ([]byte, error) {
+	return json.Marshal(m.String())
+}
+
+func (m *MemoryType) UnmarshalJSON(data []byte) (err error) {
+	var suits string
+	if err := json.Unmarshal(data, &suits); err != nil {
+		return err
+	}
+	if *m, err = ParseMemoryType(suits); err != nil {
+		return err
+	}
+	return nil
+}
+
+func ParseMemoryType(s string) (MemoryType, error) {
+	s = strings.TrimSpace(strings.ToLower(s))
+	value, ok := MemoryTypeInt[s]
+	if !ok {
+		return MemoryType(0), fmt.Errorf("%q is not a valid memory type", s)
+	}
+	return MemoryType(value), nil
+}
+
 type MemoryMetadata struct {
-	Content string `bson:"content" json:"content"`
+	Type       MemoryType `bson:"type" json:"type"`
+	Content    string     `bson:"content" json:"content"`
+	Importance int        `bson:"importance" json:"importance"` // importance score, from 1 to 10
+	CreatedAt  time.Time  `bson:"created_at" json:"created_at"`
 }
 
 func (m MemoryMetadata) Payload() map[string]*pb.Value {
@@ -39,11 +98,11 @@ func (m Memory) Point() *pb.PointStruct {
 	}
 }
 
-type AddMemoryRequest struct {
+type AddMemoriesRequest struct {
 	Memories []Memory `bson:"memories" json:"memories"`
 }
 
-type AddMemoryResponse struct {
+type AddMemoriesResponse struct {
 	IDs []string `bson:"ids" json:"ids"` // inserted memory id in qdrant
 }
 
@@ -67,12 +126,12 @@ type RetrieveMemoriesResponse struct {
 // @Success		200	{object}	AddMemoryResponse
 // @Failure		default	{object}	APIError
 // @Router			/m/:session/add [put]
-func (hs *Handlers) AddMemory(c *gin.Context) {
+func (hs *Handlers) AddMemories(c *gin.Context) {
 	ctx := c.Request.Context()
 	sid := c.Param("session") // session id
 
 	// decode body
-	var req AddMemoryRequest
+	var req AddMemoriesRequest
 	err := c.ShouldBindJSON(&req)
 	if err != nil {
 		NewError(c, http.StatusBadRequest, ErrJSONDecode)
@@ -86,7 +145,7 @@ func (hs *Handlers) AddMemory(c *gin.Context) {
 	}
 
 	// get embeddings from openai api
-	em, err := hs.embedding(ctx, inputs)
+	em, err := hs.llm.embedding(ctx, inputs)
 	if err != nil {
 		NewError(c, http.StatusBadRequest, ErrOpenAIEmbedding)
 		return
@@ -102,7 +161,7 @@ func (hs *Handlers) AddMemory(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, AddMemoryResponse{IDs: ids})
+	c.JSON(http.StatusOK, AddMemoriesResponse{IDs: ids})
 }
 
 // @Summary		search memory by similarity
@@ -132,7 +191,7 @@ func (hs *Handlers) SearchMemories(c *gin.Context) {
 	}
 
 	// get the query's embedding from openai
-	embedding, err := hs.embedding(ctx, []string{req.Query})
+	embedding, err := hs.llm.embedding(ctx, []string{req.Query})
 	if err != nil {
 		NewError(c, http.StatusInternalServerError, ErrOpenAIEmbedding)
 		return
@@ -258,15 +317,6 @@ func (hs *Handlers) EnsureQCollection(ctx context.Context, name string) (upsert 
 	}
 
 	return false, err
-}
-
-// create embeddings from openai
-func (hs *Handlers) embedding(ctx context.Context, input []string) (openai.EmbeddingResponse, error) {
-	erq := openai.EmbeddingRequest{
-		Input: input,
-		Model: openai.AdaEmbeddingV2,
-	}
-	return hs.openai.CreateEmbeddings(ctx, erq)
 }
 
 // upsert memories into qdrant collection

@@ -43,10 +43,7 @@ func main() {
 	r := gin.Default()
 	v1 := r.Group("/api/v1")
 
-	handlers, err := memo.Default()
-	if err != nil {
-		log.Fatal(err)
-	}
+	handlers := memo.Default()
 
 	v1.GET("/s", handlers.GetSessions)
 	v1.POST("/s/add", handlers.AddSession)

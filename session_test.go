@@ -25,8 +25,7 @@ func (s *SessionTestSuite) SetupSuite() {
 	os.Setenv("MONGO_SESSIONS", "test_sessions")
 
 	s.router = gin.New()
-	hs, err := Default()
-	assert.NoError(s.T(), err)
+	hs := Default()
 	s.hs = hs
 
 	s.router.GET("/s", s.hs.GetSessions)
@@ -160,10 +159,10 @@ func (s *SessionTestSuite) TestSession() {
 	s.router.ServeHTTP(w, req)
 	assert.Equal(t, 404, w.Code)
 
-		w = httptest.NewRecorder()
-		req, _ = http.NewRequest("DELETE", "/s/"+ir.ID.Hex()+"/del", nil)
-		s.router.ServeHTTP(w, req)
-		assert.Equal(t, 200, w.Code)
+	w = httptest.NewRecorder()
+	req, _ = http.NewRequest("DELETE", "/s/"+ir.ID.Hex()+"/del", nil)
+	s.router.ServeHTTP(w, req)
+	assert.Equal(t, 200, w.Code)
 }
 
 func TestSessionTestSuite(t *testing.T) {

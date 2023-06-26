@@ -1,8 +1,10 @@
 package memo
 
 import (
+	"fmt"
 	"os"
 
+	"github.com/BurntSushi/toml"
 	pb "github.com/qdrant/go-client/qdrant"
 	openai "github.com/sashabaranov/go-openai"
 	mongo "go.mongodb.org/mongo-driver/mongo"
@@ -12,36 +14,54 @@ type Handlers struct {
 	sessions *mongo.Collection // mongodb collection for sessions
 
 	qCollections pb.CollectionsClient // qdrant collection for memories
-	qPoints      pb.PointsClient // qdrant points for memories
+	qPoints      pb.PointsClient      // qdrant points for memories
 
-	openai *openai.Client // openai client
+	llm *llm // openai wrapper
 
-	SearchLimit int64 // search limit per page
+	SearchLimit int64         // search limit per page
+	prompts     promptsConfig // prompts config
 }
 
-func Default() (*Handlers, error) {
+func Default() *Handlers {
 	sessions, err := SetupMongo()
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
 
 	collection, points, err := SetupQdrant()
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
 
 	key := os.Getenv("OPENAI_API_KEY")
 	if key == "" {
-		return nil, ErrInvalidOpenAPIKey
+		panic(ErrInvalidOpenAPIKey)
 	}
 
-  oc := openai.NewClient(key)
+	llm := &llm{
+		client: openai.NewClient(key),
+	}
 
-	return &Handlers{
+	// read prompts config
+	cfg, err := os.ReadFile("prompts.toml")
+	if err != nil {
+		panic(fmt.Errorf("fatal error load prompts config file: %w", err))
+	}
+
+	var prompts promptsConfig
+	toml.Decode(string(cfg), &prompts)
+	if err != nil { // Handle errors reading the config file
+		panic(fmt.Errorf("fatal error parse prompts config file: %w", err))
+	}
+
+	hs := &Handlers{
 		sessions:     sessions,
 		qCollections: collection,
 		qPoints:      points,
-		openai:       oc,
+		llm:          llm,
+		prompts:      prompts,
 		SearchLimit:  5,
-	}, nil
+	}
+
+	return hs
 }
