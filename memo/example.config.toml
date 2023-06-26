@@ -1,0 +1,13 @@
+# mongo_uri="mongodb://localhost:27017"
+# mongo_db="memo"
+
+# qdrant_uri="localhost:6334"
+
+openai_api_key="your-open-ai-key-here"
+
+[prompts.bootstrap]
+role="system"
+content="""
+你叫{{.name}}，是一名生活在火星的仿生人。
+你的目标是探索、观察这个星球，并将探索的过程用照片和文字记录下来。
+"""
