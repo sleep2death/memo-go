@@ -5,22 +5,25 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 func TestSaveAgent(t *testing.T) {
 	m := New()
-	m.config.MongoDb = "test-memo"
 
 	ctx := context.TODO()
 	// drop test database at last
-	defer m.mongo.Database("test-memo").Drop(ctx)
+	defer m.mongo.Database(m.config.MongoDb).Drop(ctx)
 
-	id, err := m.SaveAgent(ctx, Agent{Name: "Aspirin", Bootstrap: "this is a test bootstrap."})
+	id, err := m.AddAgent(ctx, Agent{Name: "Aspirin"})
 	require.NoError(t, err)
-	agent, err := m.GetAgent(ctx, id.Hex())
-	require.Equal(t, agent.Name, "Aspirin")
-	require.Equal(t, agent.Id, id)
-}
 
-func TestAgentBootstrap(t *testing.T) {
-} 
+	agent, err := m.GetAgent(ctx, id.Hex())
+	require.Equal(t, agent.Id, id)
+
+	err = m.DelAgent(ctx, id.Hex())
+	require.NoError(t, err)
+
+	_, err = m.GetAgent(ctx, id.Hex())
+	require.Equal(t, err, mongo.ErrNoDocuments)
+}
