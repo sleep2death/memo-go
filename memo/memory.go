@@ -81,6 +81,36 @@ func (memo *Memo) AddMemories(ctx context.Context, agent *Agent, memories []*Mem
 	return err
 }
 
+func (memo *Memo) DeleteMemories(ctx context.Context, agent *Agent, memories []*Memory) error {
+	l := len(memories)
+	mids := make([]primitive.ObjectID, l)
+	pids := make([]*pb.PointId, l)
+
+	for idx, m := range memories {
+		mids[idx] = m.ID
+		pids[idx] = &pb.PointId{PointIdOptions: &pb.PointId_Uuid{Uuid: m.PID}}
+	}
+
+	// delete from mongodb
+	col := memo.mongo.Database(memo.config.MongoDb).Collection(MEMORIES_COLLECTION)
+	res, err := col.DeleteMany(ctx, bson.M{"_id": bson.M{"$in": mids}})
+	if err != nil {
+		return err
+	}
+
+	if res.DeletedCount != int64(l) {
+		return fmt.Errorf("some memories not found")
+	}
+
+	// delete from qdrant
+	pb.NewPointsClient(memo.qdrant).Delete(ctx, &pb.DeletePoints{
+		CollectionName: agent.Id.Hex(),
+		Points:         &pb.PointsSelector{PointsSelectorOneOf: &pb.PointsSelector_Points{Points: &pb.PointsIdsList{Ids: pids}}},
+	})
+
+	return nil
+}
+
 func (memo *Memo) SearchMemories(ctx context.Context, agent *Agent, query string) ([]*Memory, []float32, error) {
 	// create embeddings
 	emreq := openai.EmbeddingRequest{
@@ -134,6 +164,7 @@ func (memo *Memo) SearchMemories(ctx context.Context, agent *Agent, query string
 	var docs []*Memory
 	err = cur.All(ctx, &docs)
 
+	// sort
 	sorted := make([]*Memory, len(mids))
 	for idx, mid := range mids {
 		for _, m := range docs {
@@ -141,8 +172,6 @@ func (memo *Memo) SearchMemories(ctx context.Context, agent *Agent, query string
 				sorted[idx] = m
 			}
 		}
-
-		return nil, nil, fmt.Errorf("can't find mongo docs in returned points")
 	}
 
 	return sorted, scores, err

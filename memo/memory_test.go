@@ -34,6 +34,13 @@ func TestAddMemories(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Contains(t, res[0].Content, "14")
 
+  err = m.DeleteMemories(ctx, agent, res)
+	assert.NoError(t, err)
+
+	res, _, err = m.SearchMemories(ctx, agent, "你的国籍是哪里？")
+	assert.NoError(t, err)
+	assert.Zero(t, len(res))
+
 	// delete agent at the end
 	m.DelAgent(ctx, id.Hex())
 }
