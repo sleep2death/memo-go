@@ -13,7 +13,7 @@ type llm struct {
 }
 
 func (l *llm) ScoreMemories(ctx context.Context, prompts []openai.ChatCompletionMessage, memories []string) (scores []int, err error) {
-	questions := openai.ChatCompletionMessage{Role: "user", Content: strings.Join(memories, ";")}
+  questions := openai.ChatCompletionMessage{Role: "user", Content: strings.Join(memories, ";")}
 
 	resp, err := l.client.CreateChatCompletion(ctx, openai.ChatCompletionRequest{
 		Model:    openai.GPT3Dot5Turbo,

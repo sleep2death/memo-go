@@ -176,3 +176,8 @@ func (memo *Memo) SearchMemories(ctx context.Context, agent *Agent, query string
 
 	return sorted, scores, err
 }
+
+// UpdateMemories, will update memories content, and update the vectors in qdrant
+func (memo *Memo) UpdateMemories(ctx context.Context, agent *Agent, memories []*Memory) error {
+	return nil
+}

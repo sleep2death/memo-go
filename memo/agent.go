@@ -7,14 +7,13 @@ import (
 	pb "github.com/qdrant/go-client/qdrant"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo/options"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
 type Agent struct {
-	Id        primitive.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
-	Name      string             `bson:"name" json:"name"`
+	Id   primitive.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
+	Name string             `bson:"name" json:"name"`
 }
 
 const (
@@ -28,15 +27,14 @@ func (m *Memo) AddAgent(ctx context.Context, agent Agent) (primitive.ObjectID, e
 	}
 
 	coll := m.mongo.Database(m.config.MongoDb).Collection(AGENTS_COLLECTION)
-	opts := options.Update().SetUpsert(true)
-	res, err := coll.UpdateByID(ctx, agent.Id, bson.M{"$set": agent}, opts)
+	res, err := coll.InsertOne(ctx, agent)
 	if err != nil {
 		return primitive.NilObjectID, err
 	}
 
-	id, ok := res.UpsertedID.(primitive.ObjectID)
+	id, ok := res.InsertedID.(primitive.ObjectID)
 	if !ok {
-		return primitive.NilObjectID, fmt.Errorf("invalid objectid: %v", res.UpsertedID)
+		return primitive.NilObjectID, fmt.Errorf("invalid objectid: %v", id)
 	}
 
 	_, err = m.EnsureQCollection(ctx, id.Hex())
@@ -106,7 +104,7 @@ func (m *Memo) EnsureQCollection(ctx context.Context, name string) (upsert bool,
 				Config: &pb.VectorsConfig_Params{
 					Params: &pb.VectorParams{
 						Size:     1536,
-						Distance: pb.Distance_Cosine,
+					  Distance: pb.Distance_Cosine,
 					},
 				},
 			},
