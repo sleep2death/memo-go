@@ -4,19 +4,19 @@ import "go.mongodb.org/mongo-driver/bson/primitive"
 
 type AgentModel interface {
 	// Add agent and return inserted id
-	AddAgent(agent Agent) (primitive.ObjectID, error)
+	AddAgent(agent *Agent) (primitive.ObjectID, error)
 
 	// Delete agent by id
 	DeleteAgent(id primitive.ObjectID) error
 
 	// Update agent
-	UpdateAgent(agent Agent) error
+	UpdateAgent(agent *Agent) error
 
 	// ListAgents and offset agent's id
-	ListAgents(offset primitive.ObjectID) ([]Agent, error)
+	ListAgents(offset primitive.ObjectID) ([]*Agent, error)
 
 	// GetAgent by id
-	GetAgent(id primitive.ObjectID) (Agent, error)
+	GetAgent(id primitive.ObjectID) (*Agent, error)
 }
 
 type MemoryModel interface {

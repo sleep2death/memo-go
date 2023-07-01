@@ -17,7 +17,7 @@ import (
 
 type SessionSuite struct {
 	suite.Suite
-	session Session
+	session *Session
 }
 
 func (s *SessionSuite) SetupSuite() {
@@ -37,13 +37,12 @@ func (s *SessionSuite) SetupSuite() {
 		panic(err)
 	}
 
-	s.session = Session{
+	s.session = &Session{
 		ctx:    ctx,
 		qdrant: pb.NewCollectionsClient(qc),
 		mongo:  mc.Database("test-db").Collection("agents"),
 		limit:  15,
 	}
-
 }
 
 func (s *SessionSuite) TearDownTest() {
@@ -62,21 +61,21 @@ func (s *SessionSuite) TearDownSuite() {
 }
 
 func (s *SessionSuite) TestAddAgent() {
-	id0, err := s.session.AddAgent(Agent{Name: "aspirin"})
+	id0, err := s.session.AddAgent(&Agent{Name: "aspirin"})
 	s.NoError(err)
-	id1, err := s.session.AddAgent(Agent{Name: "aspirin2d"})
+	id1, err := s.session.AddAgent(&Agent{Name: "aspirin2d"})
 	s.NoError(err)
 
 	s.NotEqual(id0.Hex(), id1.Hex())
 
 	newID := primitive.NewObjectID()
-	id3, err := s.session.AddAgent(Agent{ID: newID, Name: "aspirin2d"})
+	id3, err := s.session.AddAgent(&Agent{ID: newID, Name: "aspirin2d"})
 	s.NoError(err)
 	s.Equal(newID.Hex(), id3.Hex())
 }
 
 func (s *SessionSuite) TestGetAgent() {
-	id, err := s.session.AddAgent(Agent{Name: "aspirin"})
+	id, err := s.session.AddAgent(&Agent{Name: "aspirin"})
 	s.NoError(err)
 	agent, err := s.session.GetAgent(id)
 	s.NoError(err)
@@ -90,7 +89,7 @@ func (s *SessionSuite) TestGetAgent() {
 
 func (s *SessionSuite) TestListAgents() {
 	for i := range [5]int{} {
-		_, err := s.session.AddAgent(Agent{Name: fmt.Sprintf("aspirin %d", i)})
+		_, err := s.session.AddAgent(&Agent{Name: fmt.Sprintf("aspirin %d", i)})
 		s.NoError(err)
 	}
 	agents, err := s.session.ListAgents(primitive.NilObjectID)
@@ -98,7 +97,7 @@ func (s *SessionSuite) TestListAgents() {
 	s.Equal(5, len(agents))
 
 	for i := range [20]int{} {
-		_, err := s.session.AddAgent(Agent{Name: fmt.Sprintf("aspirin %d", i)})
+		_, err := s.session.AddAgent(&Agent{Name: fmt.Sprintf("aspirin %d", i)})
 		s.NoError(err)
 	}
 
@@ -115,7 +114,7 @@ func (s *SessionSuite) TestListAgents() {
 
 func (s *SessionSuite) TestDeleteAgent() {
 	for i := range [5]int{} {
-		_, err := s.session.AddAgent(Agent{Name: fmt.Sprintf("aspirin %d", i)})
+		_, err := s.session.AddAgent(&Agent{Name: fmt.Sprintf("aspirin %d", i)})
 		s.NoError(err)
 	}
 
@@ -133,16 +132,16 @@ func (s *SessionSuite) TestDeleteAgent() {
 }
 
 func (s *SessionSuite) TestUpdateAgent() {
-	id, err := s.session.AddAgent(Agent{Name: "aspirin2d"})
+	id, err := s.session.AddAgent(&Agent{Name: "aspirin2d"})
 	s.NoError(err)
-	err = s.session.UpdateAgent(Agent{ID: id, Name: "aspirin3d"})
+	err = s.session.UpdateAgent(&Agent{ID: id, Name: "aspirin3d"})
 	s.NoError(err)
 	agent, err := s.session.GetAgent(id)
 	s.NoError(err)
 	s.Equal("aspirin3d", agent.Name)
 
 	// try to update a not existed agent will cause error
-	err = s.session.UpdateAgent(Agent{ID: primitive.NewObjectID(), Name: "aspirin3d"})
+	err = s.session.UpdateAgent(&Agent{ID: primitive.NewObjectID(), Name: "aspirin3d"})
 	s.Error(err)
 }
 
