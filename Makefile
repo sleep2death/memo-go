@@ -7,7 +7,7 @@ VETPACKAGES ?= $(shell $(GO) list ./... | grep -v /examples/)
 GOFILES := $(shell find . -name "*.go")
 MAINFILE=cmd/main.go
 COVERFILE=cover.out
-TESTTAGS ?= ""
+TESTTAGS ?= "./memo"
 
 .PHONY: test
 test:

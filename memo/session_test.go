@@ -21,6 +21,9 @@ type SessionSuite struct {
 }
 
 func (s *SessionSuite) SetupSuite() {
+	// check session is implements AgentModel
+	var _ AgentModel = (*Session)(nil)
+
 	ctx := context.TODO()
 	// mongodb
 	mc, err := mongo.Connect(ctx, options.Client().ApplyURI("mongodb://localhost:27017"))
@@ -40,6 +43,7 @@ func (s *SessionSuite) SetupSuite() {
 		mongo:  mc.Database("test-db").Collection("agents"),
 		limit:  15,
 	}
+
 }
 
 func (s *SessionSuite) TearDownTest() {
